@@ -7,7 +7,10 @@ namespace R5T.S0103
     {
         static void Main()
         {
-            Console.WriteLine("Hello World!");
+            //Demonstrations.Instance.Get_RuntimeSystemVersion();
+            //Demonstrations.Instance.Get_RuntimeDirectoryPath();
+            //Demonstrations.Instance.Get_CoreAssemblyLocation();
+            Demonstrations.Instance.In_AssemblyContext();
         }
     }
 }
