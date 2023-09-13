@@ -9,6 +9,21 @@ namespace R5T.S0103
     [DemonstrationsMarker]
     public partial interface IDemonstrations : IDemonstrationsMarker
     {
+        public void In_ExampleTypesAssemblyContext()
+        {
+            Instances.ExampleTypesAssemblyOperator.In_AssemblyContext(
+                assembly =>
+                {
+                    var lines = Instances.ReflectionOperations.Get_TypesInAssembly(assembly)
+                        .Where(Instances.TypeOperator.Is_Public)
+                        .Select(Instances.TypeOperator.Get_NamespacedTypeName)
+                        .OrderAlphabetically()
+                        ;
+
+                    Instances.ConsoleOperator.Output(lines);
+                });
+        }
+
         public void In_AssemblyContext()
         {
             /// Inputs.
@@ -22,7 +37,7 @@ namespace R5T.S0103
             var outputFilePath = Instances.FilePaths.OutputTextFilePath;
 
             /// Run.
-            Instances.ReflectionOperator.InAssemblyContext(
+            Instances.ReflectionOperator.In_AssemblyContext(
                 assemblyFilePath,
                 //assembly =>
                 //{
@@ -33,11 +48,11 @@ namespace R5T.S0103
                 {
                     var lines = Instances.ReflectionOperations.Get_TypesInAssembly(assembly)
                         .Where(Instances.TypeOperator.Is_Public)
-                        .Select(Instances.TypeOperator.GetNamespacedTypeName)
+                        .Select(Instances.TypeOperator.Get_NamespacedTypeName)
                         .OrderAlphabetically()
                         ;
 
-                    Instances.FileOperator.WriteLines_Synchronous(
+                    Instances.FileOperator.Write_Lines_Synchronous(
                         outputFilePath.Value,
                         lines);
                 }
@@ -68,19 +83,101 @@ namespace R5T.S0103
             Instances.NotepadPlusPlusOperator.Open(outputFilePath);
         }
 
-        public void Get_CoreAssemblyLocation()
+        public void Get_DistinctDependencyAssemblyFilePaths()
         {
-            var assemblyFilePath = typeof(string).Assembly.Location;
+            /// Inputs.
+            var assemblyFilePath = Instances.FilePaths.Example_Assembly;
 
+
+            /// Run.
+            var assemblyFilePaths = Instances.AssemblyFilePathOperator.Get_AllDependencyAssemblyFilePaths_Inclusive(
+                assemblyFilePath.Value);
+
+            var distinctAssemblyFilePaths = Instances.AssemblyFilePathOperator.Get_DistinctAssemblies(assemblyFilePaths);
+
+            Instances.ConsoleOperator.Output(distinctAssemblyFilePaths);
+
+            Console.WriteLine($"{assemblyFilePaths.Length}: Assembies\n{distinctAssemblyFilePaths.Length}: Distinct Assemblies");
+        }
+
+        public void Get_DependencyAssemblyFilePaths_DotnetPack()
+        {
+            /// Inputs.
+            var assemblyFilePath = Instances.FilePaths.Example_Assembly;
+            var dotnetPackName = Instances.DotnetPackNames.Microsoft_NETCore_App_Ref;
+            var runtimeVersion = Instances.RuntimeEnvironmentOperator.Get_CurrentlyExecutingRuntimeVersion();
+            var targetFrameworkMoniker = Instances.TargetFrameworkMonikers.NET_6;
+
+
+            /// Run.
+            var assemblyFilePaths = Instances.AssemblyFilePathOperator.Get_DependencyAssemblyFilePaths_ForDotnetPack_Inclusive(
+                assemblyFilePath.Value,
+                dotnetPackName.Value,
+                runtimeVersion,
+                targetFrameworkMoniker.Value);
+
+            Instances.ConsoleOperator.Output(assemblyFilePaths);
+        }
+
+        public void Get_DependencyAssemblyFilePaths()
+        {
+            /// Inputs.
+            var assemblyFilePath = Instances.FilePaths.Example_Assembly;
+            var runtimeName = Instances.RuntimeEnvironmentOperator.Get_CurrentlyExecutingRuntimeName();
+            var runtimeVersion = Instances.RuntimeEnvironmentOperator.Get_CurrentlyExecutingRuntimeVersion();
+
+
+            /// Run.
+            var assemblyFilePaths = Instances.AssemblyFilePathOperator.Get_DependencyAssemblyFilePaths_ForRuntime_Inclusive(
+                assemblyFilePath.Value,
+                runtimeName,
+                runtimeVersion);
+
+            Instances.ConsoleOperator.Output(assemblyFilePaths);
+        }
+
+        public void Get_RuntimeDirectoryAssemblyFilePaths()
+        {
+            var assemblyFilePaths = Instances.RuntimeEnvironmentOperator.Get_CurrentlyExecutingRuntime_AssemblyFilePaths();
+
+            Instances.ConsoleOperator.Output(assemblyFilePaths);
+        }
+
+        public void Get_ExecutableDirectoryAssemblyFilePaths()
+        {
+            var assemblyFilePaths = Instances.ExecutablePathOperator.Get_AssemblyFilePaths();
+
+            Instances.ConsoleOperator.Output(assemblyFilePaths);
+        }
+
+        public void Get_CoreAssemblyFilePath()
+        {
             // "C:\Program Files\dotnet\shared\Microsoft.NETCore.App\6.0.21\System.Private.CoreLib.dll"
+            var assemblyFilePath = Instances.RuntimeEnvironmentOperator.Get_CurrentlyExecutingRuntime_CoreAssemblyFilePath();
+
             Console.WriteLine(assemblyFilePath);
         }
 
-        public void Get_RuntimeDirectoryPath()
+        public void Open_DotnetPackDirectoryPath()
         {
-            var runtimeDirectoryPath = Instances.RuntimeEnvironmentOperator_Internal.Get_RunTimeDirectoryPath();
+            /// Inputs.
+            var dotnetPackName = Instances.DotnetPackNames.Microsoft_NETCore_App_Ref;
+            var targetFramework = Instances.TargetFrameworkMonikers.NET_6;
 
+
+            /// Run.
+            var dotnetPackDirectoryPath = Instances.DotnetPackPathOperator.Open_DotnetPackDirectory(
+                dotnetPackName,
+                targetFramework);
+
+            Console.WriteLine(dotnetPackDirectoryPath);
+        }
+
+        public void Open_RuntimeDirectoryPath()
+        {
             // C:\Program Files\dotnet\shared\Microsoft.NETCore.App\6.0.21\
+            var runtimeDirectoryPath = Instances.RuntimeEnvironmentOperator.Open_RuntimeDirectory();
+
             Console.WriteLine(runtimeDirectoryPath);
         }
 

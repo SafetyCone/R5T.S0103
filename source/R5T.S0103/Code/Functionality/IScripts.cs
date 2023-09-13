@@ -11,6 +11,10 @@ namespace R5T.S0103
     [FunctionalityMarker]
     public partial interface IScripts : IFunctionalityMarker
     {
+        /// <summary>
+        /// Given a .NET pack name and target framework, get all assembly files in .NET pack directory, then find all paired XML documentation files.
+        /// Output both the paired and unpaired assembly files (and their documentation files).
+        /// </summary>
         public void Get_AssembliesWithMatchedDocumentationFiles()
         {
             /// Inputs.
@@ -58,7 +62,13 @@ namespace R5T.S0103
                 humanOutputTextFilePath);
         }
 
-        public void Find_UnmatchedDotnetPackAssemblyDocumentions()
+        /// <summary>
+        /// Given a .NET pack name and target framework, discover all assembly file paths in the .NET pack directory,
+        /// then discover all documentation files,
+        /// then match documentation and assembly files.
+        /// Output the file documentation files that are matched, and those that are unmatched.
+        /// </summary>
+        public void Find_UnmatchedDotnetPackAssemblyDocumentations()
         {
             /// Inputs.
             var dotnetPackName = Instances.DotnetPackNames.Microsoft_NETCore_App_Ref;
@@ -103,12 +113,12 @@ namespace R5T.S0103
                 documentationXmlFilePathsByAssemblyFilePath.Values)
                 .Now();
 
-            Instances.FileOperator.WriteLines_Synchronous(
+            Instances.FileOperator.Write_Lines_Synchronous(
                 outputFilePath.Value,
                 unmatchedAssemblyDllFilePaths.Get_Values()
                     .OrderAlphabetically());
 
-            Instances.FileOperator.WriteLines_Synchronous(
+            Instances.FileOperator.Write_Lines_Synchronous(
                 outputFilePath2.Value,
                 unmatchedDocumentationXmlFilePaths.Get_Values()
                     .OrderAlphabetically());
