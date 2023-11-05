@@ -2,8 +2,11 @@ using System;
 using System.Linq;
 
 using R5T.N0000;
+
+using R5T.L0053.Extensions;
 using R5T.T0141;
 using R5T.T0172.Extensions;
+using R5T.T0179.Extensions;
 
 
 namespace R5T.S0103
@@ -11,6 +14,38 @@ namespace R5T.S0103
     [DemonstrationsMarker]
     public partial interface IDemonstrations : IDemonstrationsMarker
     {
+        public void List_DuplicateRuntimeAssemblyFilePaths()
+        {
+            /// Inputs.
+            var targetFramework = Instances.TargetFrameworkMonikers.NET_6;
+            var outputFilePath = Instances.FilePaths.OutputTextFilePath;
+
+
+            /// Run.
+            var runtimeAssemblyFilePaths = Instances.DotnetRuntimePathsOperator.Get_RuntimeAssemblyFilePaths(targetFramework);
+
+            var distinctRuntimeAssemblyFilePaths = Instances.AssemblyFilePathOperator.Get_Distinct_KeepFirst(
+                runtimeAssemblyFilePaths,
+                out var duplicateAssemblyFilePathsByAssemblyFileName);
+
+            var lines = Instances.EnumerableOperator.Empty<string>()
+                .AppendIf(duplicateAssemblyFilePathsByAssemblyFileName.Any(), Instances.EnumerableOperator.From($"Duplicate '{targetFramework}' runtime assembly file paths:")
+                    .Append(duplicateAssemblyFilePathsByAssemblyFileName
+                        .SelectMany(pair => Instances.EnumerableOperator.From($"{pair.Key}:")
+                            .Append(pair.Value
+                                .Select(assemblyFilePath => $"\t{assemblyFilePath}")
+                            )
+                        )
+                    )
+                )
+                .AppendIf(duplicateAssemblyFilePathsByAssemblyFileName.None(), $"<No '{targetFramework}' runtime assembly file paths.>")
+                ;
+
+            Instances.NotepadPlusPlusOperator.WriteLinesAndOpen(
+                outputFilePath.Value,
+                lines);
+        }
+
         public void In_ExampleTypesAssemblyContext()
         {
             Instances.ExampleTypesAssemblyOperator.In_AssemblyContext(
@@ -55,7 +90,7 @@ namespace R5T.S0103
                         ;
 
                     Instances.FileOperator.Write_Lines_Synchronous(
-                        outputFilePath.Value,
+                        outputFilePath,
                         lines);
                 }
                 //assembly =>
@@ -138,7 +173,34 @@ namespace R5T.S0103
             Instances.ConsoleOperator.Output(assemblyFilePaths);
         }
 
-        public void Get_RuntimeDirectoryAssemblyFilePaths()
+        /// <summary>
+        /// For a specified target framework moniker, get the assembly file paths for the runtime of that target framework.
+        /// </summary>
+        public void Get_RuntimeAssemblyFilePaths_ForTargetFramework_InOrder()
+        {
+            /// Inputs.
+            var targetFrameworkMoniker = Instances.TargetFrameworkMonikers.NET_6;
+
+            var outputFilePath = Instances.FilePaths.OutputTextFilePath;
+
+
+            /// Run.
+            var runtimeAssemblyFilePaths = Instances.DotnetRuntimePathsOperator.Get_RuntimeAssemblyFilePaths(targetFrameworkMoniker);
+
+            var lines = runtimeAssemblyFilePaths
+                // Do not alpahbetize, order is important.
+                .Get_Values()
+                ;
+
+            Instances.NotepadPlusPlusOperator.WriteLinesAndOpen(
+                outputFilePath,
+                lines);
+        }
+
+        /// <summary>
+        /// For the currently executing runtime, get the assembly file paths for that runtime.
+        /// </summary>
+        public void Get_RuntimeAssemblyFilePaths_ForCurrentlyExecutingRuntime()
         {
             var assemblyFilePaths = Instances.RuntimeEnvironmentOperator._Platform.Get_CurrentlyExecutingRuntime_AssemblyFilePaths();
 
@@ -216,8 +278,8 @@ namespace R5T.S0103
         public void Open_DotnetPackDirectory()
         {
             /// Inputs.
-            var dotnetPackName = Instances.DotnetPackNames.Microsoft_NETCore_App_Ref;
-            var targetFrameworkMoniker = Instances.TargetFrameworkMonikers.NET_5;
+            //var dotnetPackName = Instances.DotnetPackNames.Microsoft_NETCore_App_Ref;
+            //var targetFrameworkMoniker = Instances.TargetFrameworkMonikers.NET_5;
 
 
             /// Run.

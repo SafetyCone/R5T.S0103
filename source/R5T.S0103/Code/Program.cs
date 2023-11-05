@@ -10,14 +10,17 @@ namespace R5T.S0103
         {
             //Scripts.Instance.Find_UnmatchedDotnetPackAssemblyDocumentations();
             //Scripts.Instance.Get_AssembliesWithMatchedDocumentationFiles();
-            await Scripts.Instance.ReflectOver_AllCodebaseOutputAssemblyMembers();
+            //Scripts.Instance.ReflectOver_AllCodebaseOutputAssemblyMembers();
+            Scripts.Instance.GenerateAndCheck_AllCodebaseMembers();
 
             //Demonstrations.Instance.Get_RuntimeSystemVersion();
             //Demonstrations.Instance.Open_RuntimeDirectoryPath();
+            //Demonstrations.Instance.Get_RuntimeAssemblyFilePaths_ForTargetFramework_InOrder();
+            //Demonstrations.Instance.List_DuplicateRuntimeAssemblyFilePaths();
+            //Demonstrations.Instance.Get_RuntimeAssemblyFilePaths_ForCurrentlyExecutingRuntime();
             //Demonstrations.Instance.Open_DotnetPackDirectoryPath();
             //Demonstrations.Instance.Get_CoreAssemblyLocation();
             //Demonstrations.Instance.Get_ExecutableDirectoryAssemblyFilePaths();
-            //Demonstrations.Instance.Get_RuntimeDirectoryAssemblyFilePaths();
             //Demonstrations.Instance.Get_AssemblyDirectoryAssemblyFilePaths();
             //Demonstrations.Instance.Get_DependencyAssemblyFilePaths();
             //Demonstrations.Instance.Get_DependencyAssemblyFilePaths_DotnetPack();

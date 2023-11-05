@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 
 using R5T.L0053.Extensions;
 using R5T.T0132;
@@ -14,7 +13,191 @@ namespace R5T.S0103
     [FunctionalityMarker]
     public partial interface IScripts : IFunctionalityMarker
     {
-        public async Task ReflectOver_AllCodebaseOutputAssemblyMembers()
+        /// <summary>
+        /// Foreach of my projects, reflect over every member in the output assembly.
+        /// Verify that:
+        ///     1) identity strings generated directly from the member info (R5T.L0062.F001) match those generated from a signature structure (R5T.L0065.F002),
+        ///     2) signature instances round-tripped to a signature string match.
+        /// <para>Note: require all publish convention directory file path assemblies to exist (to be already built as part of R5T.S0063.S000).</para>
+        /// </summary>
+        public void GenerateAndCheck_AllCodebaseMembers()
+        {
+            /// Inputs.
+            var overrideProjectFilePaths = false;
+            var overrideProjectFilePaths_Value = @"C:\Code\DEV\Git\GitHub\SafetyCone\R5T.T0174\source\R5T.T0174\R5T.T0174.csproj"
+                .ToProjectFilePath();
+            var overrideIdentityString = false;
+            var overrideIdentityString_Value = "M:R5T.T0174.ArrayWrapper`1.op_Implicit(R5T.T0174.ArrayWrapper{`0})~`0[]";
+            var writeEqualsResult = false;
+            var showSuccesses = false;
+
+            var outputFilePath = Instances.FilePaths.OutputTextFilePath;
+            var outputJsonFilePath = Instances.FilePaths.OutputJsonFilePath;
+
+
+            /// Run.
+            var (humanOutputTextFilePath, logFilePath) = Instances.TextOutputOperator.In_TextOutputContext(
+                nameof(ReflectOver_AllCodebaseOutputAssemblyMembers),
+                textOutput =>
+                {
+                    var projectFilePaths = overrideProjectFilePaths
+                        ? Instances.EnumerableOperator.From(overrideProjectFilePaths_Value)
+                        : Instances.FileSystemOperator.Find_AllProjectFilePaths(
+                            textOutput)
+                            .Select(projectFilePath => projectFilePath.ToProjectFilePath())
+                        ;
+
+                    var projectFilesTuples = Instances.ProjectPathOperator.CreateProjectFilesTuples(
+                        projectFilePaths,
+                        textOutput)
+                        .Where(tuple => true
+                            && Instances.NullOperator.Is_NotNull(tuple.AssemblyFilePath)
+                            && Instances.FileSystemOperator._Platform.Exists_File(
+                                tuple.AssemblyFilePath.Value)
+                        )
+                        .Now();
+
+                    var results = new List<ProjectFileResult>();
+
+                    foreach (var tuple in projectFilesTuples)
+                    {
+                        var projectFilePath = tuple.ProjectFilePath;
+                        var assemblyFilePath = tuple.AssemblyFilePath.Value;
+
+                        textOutput.WriteInformation(projectFilePath.Value);
+                        textOutput.WriteInformation(assemblyFilePath);
+
+                        var result = new ProjectFileResult
+                        {
+                            ProjectFilePath = projectFilePath,
+                        };
+
+                        results.Add(result);
+
+                        // Catch any assembly load exceptions.
+                        try
+                        {
+                            Instances.ProjectFileOperator.In_OutputAssemblyContext_PublishConvention(
+                                tuple.ProjectFilePath,
+                                (assembly, projectOutputAssemblyContext) =>
+                                {
+                                    Instances.AssemblyOperator.Foreach_Member(
+                                        assembly,
+                                        memberInfo =>
+                                        {
+                                            // Make sure we at least have an identity string with with to refer to the member.
+                                            try
+                                            {
+                                                // Do a real exercise of all member info values (since due to lazy-loading of dependencies, dependencies are not loaded until asked for).
+                                                var identityString = Instances.IdentityStringOperator.Get_IdentityString(memberInfo);
+
+                                                // For debugging.
+                                                if(overrideIdentityString && identityString.Value != overrideIdentityString_Value)
+                                                {
+                                                    return;
+                                                }
+
+                                                // Do signature parsing.
+                                                try
+                                                {
+                                                    var signature = Instances.SignatureOperator.Get_Signature(memberInfo);
+
+                                                    var signatureString = Instances.SignatureOperator.Get_SignatureString(signature);
+
+                                                    var roundTrippedSignature = Instances.SignatureStringOperator.Get_Signature(signatureString);
+
+                                                    var signatureStringPair = new SignatureStringPair
+                                                    {
+                                                        IdentityString = identityString,
+                                                        SignatureString = signatureString,
+                                                    };
+
+                                                    var signaturesAreEqual = Instances.SignatureOperator.Are_Equal_ByValue(
+                                                        signature,
+                                                        roundTrippedSignature);
+
+                                                    if (signaturesAreEqual)
+                                                    {
+                                                        result.SignatureString_Successes.Add(signatureStringPair);
+                                                    }
+                                                    else
+                                                    {
+                                                        if (writeEqualsResult)
+                                                        {
+                                                            var equalsResult = Instances.SignatureEqualityOperator.Are_Equal(
+                                                                signature,
+                                                                roundTrippedSignature);
+
+                                                            Instances.ResultOperator.Filter_KeepFailuresOnly(equalsResult);
+
+                                                            Instances.ResultSerializer.Serialize(
+                                                                outputJsonFilePath.Value,
+                                                                equalsResult);
+
+                                                            Instances.NotepadPlusPlusOperator.Open(outputJsonFilePath);
+                                                        }
+
+                                                        result.SignatureString_Failures.Add(signatureStringPair);
+                                                    }
+
+                                                    var identityString_FromSignature = Instances.SignatureOperator.Get_IdentityString(signature);
+
+                                                    var identityStringPair = new IdentityStringPair
+                                                    {
+                                                        IdentityString = identityString,
+                                                        SignatureIdentityString = identityString_FromSignature,
+                                                    };
+
+                                                    // Make sure to use identity string equals-by-value since identity string types might be unequal.
+                                                    var identityStringsAreEqual = identityString.Equals_ByValue(identityString_FromSignature);
+                                                    if(identityStringsAreEqual)
+                                                    {
+                                                        result.IdentityString_Successes.Add(identityStringPair);
+                                                    }
+                                                    else
+                                                    {
+                                                        result.IdentityString_Failures.Add(identityStringPair);
+                                                    }
+                                                }
+                                                catch(Exception exception)
+                                                {
+                                                    textOutput.WriteInformation(exception.Message);
+
+                                                    result.Exceptions.Add(exception);
+                                                }
+                                            }
+                                            catch(Exception exception)
+                                            {
+                                                textOutput.WriteInformation(exception.Message);
+
+                                                result.Exceptions.Add(exception);
+                                            }
+                                        });
+                                });
+                        }
+                        catch (Exception exception)
+                        {
+                            textOutput.WriteInformation(exception.Message);
+
+                            result.Exceptions.Add(exception);
+                        }
+                    }
+
+                    Instances.Operator.WriteResultsToOutputFile_Synchronous(
+                        outputFilePath,
+                        results,
+                        showSuccesses);
+                });
+
+            Instances.NotepadPlusPlusOperator.Open(outputFilePath);
+        }
+
+        /// <summary>
+        /// Foreach of my projects, reflect over every member in the output assembly.
+        /// This provides a ROBUST test of whether all dependency assemblies have been identified or not.
+        /// <para>Note: require all publish convention directory file path assemblies to exist (to be already built as part of R5T.S0063.S000).</para>
+        /// </summary>
+        public void ReflectOver_AllCodebaseOutputAssemblyMembers()
         {
             // For a project file path:
             //  * Determine the publish convention's output assembly file path. (Requires reading the project file.)
@@ -28,7 +211,7 @@ namespace R5T.S0103
             //  * Get all dependency assembly file paths for the assembly (assembly directory + runtime directory).
 
             /// Inputs.
-            var overrideProjectFilePaths = true;
+            var overrideProjectFilePaths = false;
             var overrideProjectFilePaths_Value = @"C:\Code\DEV\Git\GitHub\SafetyCone\R5T.C0003\source\R5T.C0003\R5T.C0003.csproj"
                 .ToProjectFilePath();
 
@@ -39,7 +222,7 @@ namespace R5T.S0103
             /// Run.
             var results = new List<string>();
 
-            var (humanOutputTextFilePath, logFilePath) = await Instances.TextOutputOperator.In_TextOutputContext(
+            var (humanOutputTextFilePath, logFilePath) = Instances.TextOutputOperator.In_TextOutputContext(
                 nameof(ReflectOver_AllCodebaseOutputAssemblyMembers),
                 textOutput =>
                 {
@@ -98,40 +281,17 @@ namespace R5T.S0103
                                         .Append(projectOutputAssemblyContext.DependencyAssemblyFilePaths.Get_Values());
 
                                     Instances.FileOperator.Write_Lines_Synchronous(
-                                        errorOutputFilePath.Value,
+                                        errorOutputFilePath,
                                         lines);
 
                                     Instances.NotepadPlusPlusOperator.Open(errorOutputFilePath);
                                 }
                             });
-
-                        //await Instances.ReflectionOperator.In_AssemblyContext(
-                        //    assemblyFilePath,
-                        //    async assembly =>
-                        //    {
-                        //        // Foreach member element in the assembly (event, field, method, namespace, property, type), get the identity name.
-                        //        await Instances.AssemblyOperator.Foreach_Member(
-                        //            assembly,
-                        //            memberInfo =>
-                        //            {
-                        //                //// This is too easy.
-                        //                //namesList.Add(memberInfo.Name);
-
-                        //                // Do a real exercise of all member info values (since due to lazy-loading of dependencies, dependencies are not loaded until asked for).
-                        //                var identityString = Instances.IdentityStringOperator.Get_IdentityString(memberInfo);
-
-                        //                results.Add(identityString.Value);
-
-                        //                return Task.CompletedTask;
-                        //            });
-                        //    });
                     }
-
-                    return Task.CompletedTask;
                 });
 
             Instances.FileOperator.Write_Lines_Synchronous(
-                outputFilePath.Value,
+                outputFilePath,
                 results);
 
             Instances.NotepadPlusPlusOperator.Open(outputFilePath);
@@ -160,7 +320,7 @@ namespace R5T.S0103
 
                     textOutput.WriteInformation($"Dotnet pack directory path ({dotnetPackName}:{targetFramework}):\n\t{dotnetPackDirectoryPath}");
 
-                    var assemblyDllFilePathsHash = Instances.FileSystemOperator.Enumerate_DllFiles(
+                    var assemblyDllFilePathsHash = Instances.FileSystemOperator.Enumerate_DllFilePaths(
                         dotnetPackDirectoryPath)
                         .ToHashSet();
 
@@ -213,7 +373,7 @@ namespace R5T.S0103
                 dotnetPackDirectoryPath.Value);
 
             // Get all assembly DLL files.
-            var assemblyDllFilePathsHash = Instances.FileSystemOperator.Enumerate_DllFiles(
+            var assemblyDllFilePathsHash = Instances.FileSystemOperator.Enumerate_DllFilePaths(
                 dotnetPackDirectoryPath)
                 .ToHashSet();
 
@@ -240,12 +400,12 @@ namespace R5T.S0103
                 .Now();
 
             Instances.FileOperator.Write_Lines_Synchronous(
-                outputFilePath.Value,
+                outputFilePath,
                 unmatchedAssemblyDllFilePaths.Get_Values()
                     .OrderAlphabetically());
 
             Instances.FileOperator.Write_Lines_Synchronous(
-                outputFilePath2.Value,
+                outputFilePath2,
                 unmatchedDocumentationXmlFilePaths.Get_Values()
                     .OrderAlphabetically());
 
