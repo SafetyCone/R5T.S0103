@@ -30,7 +30,7 @@ namespace R5T.S0103
 
                     textOutput.WriteInformation($"Dotnet pack directory path ({dotnetPackName}:{targetFramework}):\n\t{dotnetPackDirectoryPath}");
 
-                    var assemblyDllFilePathsHash = Instances.FileSystemOperator.Enumerate_DllFiles(
+                    var assemblyDllFilePathsHash = Instances.FileSystemOperator.Enumerate_DllFilePaths(
                         dotnetPackDirectoryPath)
                         .ToHashSet();
 
@@ -73,11 +73,11 @@ namespace R5T.S0103
                 dotnetPackName,
                 targetFramework);
 
-            Instances.WindowsExplorerOperator.OpenDirectoryInExplorer(
-                dotnetPackDirectoryPath.Value);
+            Instances.WindowsExplorerOperator.Open(
+                dotnetPackDirectoryPath);
 
             // Get all assembly DLL files.
-            var assemblyDllFilePathsHash = Instances.FileSystemOperator.Enumerate_DllFiles(
+            var assemblyDllFilePathsHash = Instances.FileSystemOperator.Enumerate_DllFilePaths(
                 dotnetPackDirectoryPath)
                 .ToHashSet();
 
@@ -103,12 +103,12 @@ namespace R5T.S0103
                 documentationXmlFilePathsByAssemblyFilePath.Values)
                 .Now();
 
-            Instances.FileOperator.WriteLines_Synchronous(
+            Instances.FileOperator.Write_Lines_Synchronous(
                 outputFilePath.Value,
                 unmatchedAssemblyDllFilePaths.Get_Values()
                     .OrderAlphabetically());
 
-            Instances.FileOperator.WriteLines_Synchronous(
+            Instances.FileOperator.Write_Lines_Synchronous(
                 outputFilePath2.Value,
                 unmatchedDocumentationXmlFilePaths.Get_Values()
                     .OrderAlphabetically());

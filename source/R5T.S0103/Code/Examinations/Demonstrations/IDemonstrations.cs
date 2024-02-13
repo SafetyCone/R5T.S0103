@@ -33,11 +33,11 @@ namespace R5T.S0103
                 {
                     var lines = Instances.ReflectionOperations.Get_TypesInAssembly(assembly)
                         .Where(Instances.TypeOperator.Is_Public)
-                        .Select(Instances.TypeOperator.GetNamespacedTypeName)
+                        .Select(Instances.TypeOperator.Get_NamespacedTypeName)
                         .OrderAlphabetically()
                         ;
 
-                    Instances.FileOperator.WriteLines_Synchronous(
+                    Instances.FileOperator.Write_Lines_Synchronous(
                         outputFilePath.Value,
                         lines);
                 }
