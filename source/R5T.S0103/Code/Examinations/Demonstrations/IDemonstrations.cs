@@ -22,7 +22,7 @@ namespace R5T.S0103
             var outputFilePath = Instances.FilePaths.OutputTextFilePath;
 
             /// Run.
-            Instances.ReflectionOperator.InAssemblyContext(
+            Instances.ReflectionOperator.In_AssemblyContext(
                 assemblyFilePath,
                 //assembly =>
                 //{
@@ -38,7 +38,7 @@ namespace R5T.S0103
                         ;
 
                     Instances.FileOperator.Write_Lines_Synchronous(
-                        outputFilePath.Value,
+                        outputFilePath,
                         lines);
                 }
                 //assembly =>
@@ -78,7 +78,7 @@ namespace R5T.S0103
 
         public void Get_RuntimeDirectoryPath()
         {
-            var runtimeDirectoryPath = Instances.RuntimeEnvironmentOperator_Internal.Get_RunTimeDirectoryPath();
+            var runtimeDirectoryPath = Instances.RuntimeEnvironmentOperator.Get_RuntimeDirectoryPath();
 
             // C:\Program Files\dotnet\shared\Microsoft.NETCore.App\6.0.21\
             Console.WriteLine(runtimeDirectoryPath);
@@ -86,7 +86,7 @@ namespace R5T.S0103
 
         public void Get_RuntimeSystemVersion()
         {
-            var clrVersion = Instances.RuntimeEnvironmentOperator.Get_CommonLanguageRuntimeVersion();
+            var clrVersion = Instances.RuntimeEnvironmentOperator._Platform.Get_CommonLanguageRuntimeVersion();
 
             // v4.0.30319:
             Console.WriteLine($"{clrVersion}: Common Language Runtime Version (CLRV)");

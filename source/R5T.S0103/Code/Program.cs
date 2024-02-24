@@ -10,8 +10,8 @@ namespace R5T.S0103
         {
             //Scripts.Instance.Find_UnmatchedDotnetPackAssemblyDocumentations();
             //Scripts.Instance.Get_AssembliesWithMatchedDocumentationFiles();
-            //Scripts.Instance.ReflectOver_AllCodebaseOutputAssemblyMembers();
-            Scripts.Instance.GenerateAndCheck_AllCodebaseMembers();
+            //Scripts.Instance.ReflectOver_AllCodebaseOutputAssemblyMembers(); // Worrisome, where did this go?
+            //Scripts.Instance.GenerateAndCheck_AllCodebaseMembers(); // Worrisome, where did this go?
 
             //Demonstrations.Instance.Get_RuntimeSystemVersion();
             //Demonstrations.Instance.Open_RuntimeDirectoryPath();

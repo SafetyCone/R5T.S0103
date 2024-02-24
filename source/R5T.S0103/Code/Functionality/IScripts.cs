@@ -104,12 +104,12 @@ namespace R5T.S0103
                 .Now();
 
             Instances.FileOperator.Write_Lines_Synchronous(
-                outputFilePath.Value,
+                outputFilePath,
                 unmatchedAssemblyDllFilePaths.Get_Values()
                     .OrderAlphabetically());
 
             Instances.FileOperator.Write_Lines_Synchronous(
-                outputFilePath2.Value,
+                outputFilePath2,
                 unmatchedDocumentationXmlFilePaths.Get_Values()
                     .OrderAlphabetically());
 
