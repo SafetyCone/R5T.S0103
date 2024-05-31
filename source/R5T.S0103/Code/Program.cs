@@ -4,6 +4,9 @@ using System.Threading.Tasks;
 
 namespace R5T.S0103
 {
+    /// <summary>
+    /// R5T.S0103 - Reflection scripts.
+    /// </summary>
     class Program
     {
         static async Task Main()
